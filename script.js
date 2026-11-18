@@ -11,16 +11,16 @@ let todos = [];
 
 function loadTodos() {
     try {
-        const raw = localStorage.getItem(STORAGE_KEY);
+        const raw = localStorage.getItem(STORAGE_KEY)
         if (!raw) {
             todos = []
-            return;
+            return
         }
         const parsed = JSON.parse(raw)
-        todos = Array.isArray(parsed) ? parsed : [];
-    } catch (error) {
-        console.error('Не удалось прочитать задачи из localStorage:', error)
-        todos = [];
+        todos = Array.isArray(parsed) ? parsed : []
+    } catch (err) {
+        console.error('Не удалось прочитать задачи из localStorage:', err)
+        todos = []
     }
 }
 
@@ -35,7 +35,7 @@ function SaveTodos() {
 function render() {
     list.innerHTML = "";
 
-  todos.forEach((todo) => {
+todos.forEach((todo) => {
     const li = document.createElement("li");
     li.className = "todo" + (todo.done ? " todo--done" : "");
     li.dataset.id = todo.id;
@@ -54,9 +54,48 @@ function render() {
     del.className = "todo__delete";
     del.textContent = "✕";
     del.setAttribute("aria-label", "Удалить задачу");
-    
+
     li.append(checkbox, text, del);
     list.append(li);
   });
+
+  emptyState.hidden = todos.length > 0;
+
+  const doneCount = todos.filter((t) => t.done).length;
+  counter.textContent = `Всего: ${todos.length} | Выполнено: ${doneCount}`;
 }
+
+function addTodo(text) {
+    todos.push({
+        id: Date.now(),
+        text: text.trim(),
+        done: false,
+        createdAt: new Date().toISOString(),
+    })
+    saveTodos()
+    render()
+}
+
+function toggleTodo(id) {
+    const todo = todos.find(t => t.id === id)
+    if(!todo) return
+    todo.done = !todo.done
+    SaveTodos()
+    render()
+}
+
+function deleteTodo(id) {
+    todos = todos.filter(t => t.id === id)
+    SaveTodos()
+    render()
+}
+
+form.addEventListener('submit', (e) => {
+    e.preventDefault()
+    const text = input.value.trim()
+    if (!text) return
+    addTodo(text)
+    input.value = ''
+    input.focus()
+})
 
